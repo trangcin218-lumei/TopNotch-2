@@ -1,7 +1,7 @@
-# Top Notch 2 – Tự học
+# English Learning Hub – Top Notch 2
 
-Website tĩnh gồm từ vựng, ngữ pháp, phần viết cho 10 unit. Chạy trên GitHub Pages, không cần cài đặt gì.
+Website tĩnh (HTML/CSS/JS) chạy trên GitHub Pages: Vocabulary, Grammar, Speaking, Writing, Practice, My Progress, có đăng nhập.
 
-- Sửa nội dung: mở `data.js` (mỗi unit có `v` từ vựng, `g` ngữ pháp, `w` phần viết).
-- Xem thử ở máy: mở `index.html` bằng trình duyệt.
-- Không đưa file PDF/audio của sách vào repo (đã chặn trong `.gitignore`).
+- Nội dung: `data.js` (từ vựng, ngữ pháp, viết), `speaking.js` (cụm giao tiếp).
+- Tài khoản và tiến độ lưu trong trình duyệt (localStorage), mật khẩu được băm SHA-256 kèm salt. Không đồng bộ giữa các thiết bị.
+- Không đưa PDF/audio của sách vào repo (đã chặn trong `.gitignore`).
