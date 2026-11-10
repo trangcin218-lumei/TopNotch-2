@@ -66,3 +66,30 @@ details{margin-top:4px}summary{cursor:pointer;color:var(--blue2);font-weight:600
 .q label{border-radius:14px;border-width:2px}
 @media (max-width:760px){.hero-art{margin-top:10px}}
 [hidden]{display:none!important}
+
+/* --- extra cute --- */
+h1,h2,.brand b,.keep b{font-family:"Baloo 2","Nunito",sans-serif}
+.top{border-bottom:0;box-shadow:0 4px 0 #bfe0ff;background:rgba(255,255,255,.95)}
+#nav a{border-radius:99px;font-weight:600}#nav a:hover{transform:translateY(-2px);transition:transform .12s}
+.hero{position:relative;overflow:hidden}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero::before{width:170px;height:170px;right:-50px;top:-60px;background:#ffe9a8;opacity:.6}
+.hero::after{width:120px;height:120px;left:-40px;bottom:-50px;background:#ffd3df;opacity:.6}
+.hero>*{position:relative;z-index:1}
+.hero-art{flex-wrap:wrap}
+.bubble{width:100%;order:-1;text-align:center;background:#fff;border:3px solid #bfe0ff;border-radius:22px;padding:8px 14px;font-weight:700;position:relative;margin-bottom:14px}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-12px;width:18px;height:18px;background:#fff;border-right:3px solid #bfe0ff;border-bottom:3px solid #bfe0ff;transform:translateX(-50%) rotate(45deg)}
+.card h3{font-family:"Baloo 2",sans-serif;font-size:1.35rem}
+.card .btn{background:#fff9e3;border-color:#f2d27a;color:var(--navy)}
+.stat{background:linear-gradient(#fff,#f3f9ff)}.stat b{font-family:"Baloo 2",sans-serif;color:var(--blue2)}
+.unit{border-radius:22px}.unit b{font-family:"Baloo 2",sans-serif;font-size:1.1rem}
+table th{background:#d9ecff;color:var(--navy)}tr:nth-child(even) td{background:#f7fbff}
+.gt th{background:#ffe9a8}.gt td:first-child{width:34%}
+.wl td.ipa,.ipa{font-family:"Segoe UI","Noto Sans","DejaVu Sans",sans-serif;color:var(--muted);font-size:.95em}
+.face small.ipa{font-size:1rem;font-weight:400}
+.wl button{padding:2px 10px}
+.sr{position:absolute;left:-9999px}
+.face{box-shadow:0 6px 0 #bfe0ff}.face.back{box-shadow:0 6px 0 #f2d27a}
+.q label:hover{border-color:var(--blue);background:#f5faff}
+.auth{border:3px solid #fff;box-shadow:0 8px 24px rgba(47,127,209,.15)}
+@media (prefers-reduced-motion:reduce){#nav a:hover,.card:hover{transform:none}}
