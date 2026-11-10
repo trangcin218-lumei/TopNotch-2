@@ -1,4 +1,4 @@
-const U=window.UNITS,SP=window.SPEAK,$=s=>document.querySelector(s),app=$('#app');
+const U=window.UNITS,SP=window.SPEAK,WR=window.WR,PQ=window.PQ,$=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const ymd=d=>d.toLocaleDateString('en-CA');
@@ -10,8 +10,8 @@ async function hash(p,salt){const s=salt+p;if(window.crypto&&crypto.subtle){cons
 const ICON={vocab:'<path d="M4 5h7a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4zM20 5h-7a3 3 0 0 0-3 3v11a2 2 0 0 1 2-2h8z"/>',grammar:'<path d="M3 9l9-5 9 5M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/>',speaking:'<path d="M4 5h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM20 9v6a2 2 0 0 1-2 2"/>',writing:'<path d="M4 20l1-4L17 4l3 3L8 19zM14 7l3 3"/>',practice:'<path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/>'};
 const SK=[['vocab','Vocabulary','Learn useful words and expressions.'],['grammar','Grammar','Understand key grammar points.'],['speaking','Speaking','Practice real-life conversations.'],['writing','Writing','Improve your writing skills.'],['practice','Practice','Test your knowledge with fun exercises.']];
 // ---- tiến độ
-const frac=(d,u)=>({vocab:(d.known?.[u.n]?.length||0)/u.v.length,grammar:(d.gram?.[u.n]||0)/u.g.q.length,speaking:(d.speak?.[u.n]?.length||0)/SP[u.n].length,writing:d.write?.[u.n]?.done?1:0});
-const unitPct=(d,u)=>{const f=frac(d,u);return (f.vocab+f.grammar+f.speaking+f.writing)/4};
+const frac=(d,u)=>({vocab:(d.known?.[u.n]?.length||0)/u.v.length,grammar:(d.gram?.[u.n]||0)/u.g.q.length,speaking:(d.speak?.[u.n]?.length||0)/SP[u.n].q.length,writing:(d.wr?.[u.n]?.length||0)/WR[u.n].length,practice:(d.prac?.[u.n]||0)/20});
+const unitPct=(d,u)=>Object.values(frac(d,u)).reduce((x,y)=>x+y,0)/5;
 const overall=d=>Math.round(U.reduce((a,u)=>a+unitPct(d,u),0)/U.length*100);
 function streak(days=[]){let s=0,x=new Date();if(!days.includes(ymd(x)))x.setDate(x.getDate()-1);while(days.includes(ymd(x))){s++;x.setDate(x.getDate()-1)}return s}
 const bar=p=>`<div class="bar" role="progressbar" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.round(p*100)}%"></i></div>`;
@@ -28,10 +28,9 @@ function route(){
   const u=U.find(x=>x.n==n);
   if(!k)return home();
   if(k=='progress')return progress();
-  if(k=='practice')return practice();
   if(!SK.some(s=>s[0]==k))return home();
   if(!u)return unitList(k);
-  ({vocab,grammar,speaking,writing})[k](u);
+  ({vocab,grammar,speaking,writing,practice})[k](u);
 }
 // ---- đăng nhập / đăng ký
 function authView(reg=false){
@@ -52,9 +51,9 @@ function authView(reg=false){
 // ---- trang chủ
 function home(){
   const d=load(),p=overall(d),s=streak(d.days);
-  app.innerHTML=`<section class="hero"><div><h1>Your English Learning Journey<em>Starts Here!</em></h1><p>Build vocabulary. Master grammar. Gain confidence in English!</p><a class="btn primary" href="#/vocab">Start Learning</a></div><div class="books" aria-hidden="true"><div>LEARN</div><div>PRACTICE</div><div>ACHIEVE</div></div></section>
-  <div class="cards">${SK.map(([k,l,t])=>`<div class="card"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg><h3>${l}</h3><p>${t}</p><a class="btn" href="#/${k}">Explore</a></div>`).join('')}</div>
-  <div class="keep"><div><b>Keep Going!</b><p>${s?`${s}-day streak. `:''}Small steps make a big difference. You have completed ${p}% of Top Notch 2.</p></div><a class="btn primary" href="#/progress">My Progress</a></div>`;
+  app.innerHTML=`<section class="hero"><div><h1>Your English Learning Journey<em>Starts Here!</em></h1><p>Build vocabulary. Master grammar. Gain confidence in English!</p><a class="btn primary" href="#/vocab">Start Learning</a></div><div class="hero-art" aria-hidden="true"><svg class="mascot" viewBox="0 0 120 120"><circle cx="60" cy="84" r="34" fill="#8cc4f7"/><polygon points="60,14 12,34 60,52 108,34" fill="#1d4f91"/><path d="M34 46v12c0 5 12 9 26 9s26-4 26-9V46L60 56z" fill="#2f7fd1"/><path d="M104 36v18" stroke="#f2b632" stroke-width="3"/><circle cx="104" cy="57" r="4" fill="#f2b632"/><circle cx="48" cy="82" r="5" fill="#12335b"/><circle cx="72" cy="82" r="5" fill="#12335b"/><circle cx="50" cy="80" r="1.8" fill="#fff"/><circle cx="74" cy="80" r="1.8" fill="#fff"/><ellipse cx="38" cy="94" rx="6" ry="4" fill="#ffb3c1"/><ellipse cx="82" cy="94" rx="6" ry="4" fill="#ffb3c1"/><path d="M52 94q8 8 16 0" fill="none" stroke="#12335b" stroke-width="3" stroke-linecap="round"/></svg><div class="books"><div>LEARN</div><div>PRACTICE</div><div>ACHIEVE</div></div></div></section>
+  <div class="cards">${SK.map(([k,l,t])=>`<div class="card c-${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg><h3>${l}</h3><p>${t}</p><a class="btn" href="#/${k}">Explore</a></div>`).join('')}</div>
+  <div class="keep"><div><b>Keep Going!</b><p>${s?`${s}-day streak. `:''}Small steps make a big difference. You're doing great! You have completed ${p}% of Top Notch 2.</p></div><a class="btn primary" href="#/progress">My Progress</a></div>`;
 }
 function unitList(k){
   const d=load(),name=SK.find(s=>s[0]==k)[1];
@@ -91,37 +90,50 @@ function grammar(u){
 }
 // ---- nói
 function speaking(u){
-  const d=load(),done=d.speak?.[u.n]||[];
-  app.innerHTML=head(u,'speaking')+`<p>Say each expression aloud, then tick it when you can use it naturally.</p>`+SP[u.n].map((p,i)=>`<div class="phrase"><input type="checkbox" data-i="${i}" ${done.includes(i)?'checked':''} aria-label="Practiced: ${esc(p[0])}"><div><b>${esc(p[0])}</b><br><span class="sub">${esc(p[1])}</span><br><i>${esc(p[2])}</i> <button data-s="${i}">Listen</button></div></div>`).join('');
-  app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>speak(SP[u.n][b.dataset.s][2]));
+  const D=SP[u.n],d=load(),done=d.speak?.[u.n]||[];
+  app.innerHTML=head(u,'speaking')+`<h2>Useful structures</h2><div class="box rule"><ul>${D.s.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><p>Answer each question aloud. Open the sample answer to compare, then tick the question.</p>`+D.q.map((q,i)=>`<div class="qa"><input type="checkbox" data-i="${i}" ${done.includes(i)?'checked':''} aria-label="Answered question ${i+1}"><div><b>${i+1}. ${esc(q[0])}</b><div class="chip">Try: ${esc(D.s[q[1]])}</div><details><summary>Sample answer</summary><p>${esc(q[2])} <button data-s="${i}">Listen</button></p></details></div></div>`).join('');
+  app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>speak(D.q[b.dataset.s][2]));
   app.querySelectorAll('[data-i]').forEach(c=>c.onchange=()=>{const dd=load(),s=new Set(dd.speak?.[u.n]||[]);c.checked?s.add(+c.dataset.i):s.delete(+c.dataset.i);(dd.speak=dd.speak||{})[u.n]=[...s];save(dd)});
 }
-// ---- viết
+// ---- viết: sắp xếp lại câu
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 function writing(u){
-  const w=u.w,cur=load().write?.[u.n]||{text:'',done:false};
-  app.innerHTML=head(u,'writing')+`<div class="box rule"><b>Task:</b> ${esc(w.task)}</div><h2>Skill: ${esc(w.skill)}</h2><ul>${w.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><h2>Your writing</h2><textarea id="ta" aria-label="Your writing" placeholder="${esc(w.start)}"></textarea><div class="row"><span id="wc">0 words</span><button id="st">Insert starter</button><label><input type="checkbox" id="dn"> Mark as completed</label></div><p class="sub">Your draft is saved automatically.</p>`;
-  const ta=$('#ta');ta.value=cur.text;$('#dn').checked=cur.done;
-  const upd=()=>{$('#wc').textContent=(ta.value.trim()?ta.value.trim().split(/\s+/).length:0)+' words';const d=load();(d.write=d.write||{})[u.n]={text:ta.value,done:$('#dn').checked};save(d,!!ta.value)};
-  ta.oninput=upd;$('#dn').onchange=upd;$('#st').onclick=()=>{if(!ta.value)ta.value=w.start;upd();ta.focus()};
-  $('#wc').textContent=(ta.value.trim()?ta.value.trim().split(/\s+/).length:0)+' words';
+  const S=WR[u.n],solved=new Set(load().wr?.[u.n]||[]);
+  app.innerHTML=head(u,'writing')+`<div class="box rule"><b>Writing skill:</b> ${esc(u.w.skill)}<ul>${u.w.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div><h2>Put the words in order</h2><p class="sub">Tap the words to build each sentence. Solved: <b id="cnt"></b></p><div id="ex"></div>`;
+  const cnt=()=>$('#cnt').textContent=solved.size+'/'+S.length;cnt();
+  S.forEach((s,i)=>{
+    const w=s.split(' '),ord=shuffle(w.map((_,j)=>j));let pick=[],msg=solved.has(i)?'Solved!':'';
+    const box=document.createElement('div');box.className='sent';$('#ex').appendChild(box);
+    const draw=()=>{
+      box.innerHTML=`<b>Sentence ${i+1}</b><div class="ans" aria-live="polite">${pick.length?pick.map(j=>`<button class="w" data-r="${j}">${esc(w[j])}</button>`).join(''):'<span class="sub">Tap the words below</span>'}</div><div class="pool">${ord.filter(j=>!pick.includes(j)).map(j=>`<button class="w" data-a="${j}">${esc(w[j])}</button>`).join('')}</div><div class="row"><button class="primary" data-c>Check</button><button data-x>Reset</button><span class="msg ${solved.has(i)?'ok':''}" role="status">${msg}</span></div>`;
+      box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{pick.push(+b.dataset.a);msg='';draw()});
+      box.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{pick=pick.filter(x=>x!=b.dataset.r);msg='';draw()});
+      box.querySelector('[data-x]').onclick=()=>{pick=[];msg='';draw()};
+      box.querySelector('[data-c]').onclick=()=>{const ok=pick.map(j=>w[j]).join(' ')==s;msg=ok?'Great job!':'Not yet. Try again!';
+        if(ok){solved.add(i);const d=load();(d.wr=d.wr||{})[u.n]=[...solved];save(d);cnt()}draw();box.querySelector('.msg').className='msg '+(ok?'ok':'no')};
+    };draw();
+  });
 }
-// ---- luyện tập tổng hợp
-function practice(){
-  const pool=[];U.forEach(u=>{u.g.q.forEach(q=>{const o=q[1].split('|');pool.push({q:q[0],o,a:q[2]})});
-    u.v.forEach((w,i)=>{const others=u.v.filter((_,j)=>j!=i).sort(()=>Math.random()-.5).slice(0,2).map(x=>x[1]),o=[w[1],...others].sort(()=>Math.random()-.5);pool.push({q:`What does "${w[0]}" mean?`,o,a:o.indexOf(w[1])})})});
-  const qs=pool.sort(()=>Math.random()-.5).slice(0,10);
-  app.innerHTML=`<h1>Practice</h1><p class="sub">10 mixed questions from all units.</p><div id="qs"></div><div class="row"><button class="primary" id="sub">Check answers</button></div><p class="msg" id="score" role="status"></p>`;
-  qs.forEach((q,qi)=>{$('#qs').insertAdjacentHTML('beforeend',`<div class="q" id="q${qi}"><div>${qi+1}. ${esc(q.q)}</div>${q.o.map((o,oi)=>`<label><input type="radio" name="p${qi}" value="${oi}"> ${esc(o)}</label>`).join('')}</div>`)});
-  $('#sub').onclick=()=>{let r=0;qs.forEach((q,qi)=>{const labs=$('#q'+qi).querySelectorAll('label'),sel=$(`input[name=p${qi}]:checked`);labs[q.a].classList.add('ok');if(sel&&+sel.value==q.a)r++;else if(sel)sel.parentNode.classList.add('no');$('#q'+qi).querySelectorAll('input').forEach(x=>x.disabled=true)});
-    $('#score').textContent=`Score: ${r}/${qs.length}`;$('#sub').disabled=true;const d=load();(d.practice=d.practice||[]).push({date:ymd(new Date()),score:r,total:qs.length});save(d)};
+// ---- luyện tập theo unit: 10 ngữ pháp + 10 từ vựng
+function practice(u){
+  const g=[...u.g.q.map(q=>{const o=q[1].split('|');return {q:q[0],o,a:o[q[2]]}}),...PQ[u.n].map(q=>{const o=q[1].split('|');return {q:q[0],o,a:o[0]}})];
+  const vs=shuffle(u.v).slice(0,10).map((w,i)=>{const ot=shuffle(u.v.filter(x=>x!==w)).slice(0,2),fw=i%2==0;
+    return fw?{q:`What does "${w[0]}" mean?`,o:[w[1],...ot.map(x=>x[1])],a:w[1]}:{q:`Which word means "${w[1]}"?`,o:[w[0],...ot.map(x=>x[0])],a:w[0]}});
+  const qs=shuffle([...g,...vs]).map(q=>({...q,o:shuffle(q.o)})),best=load().prac?.[u.n]||0;
+  app.innerHTML=head(u,'practice')+`<p class="sub">20 questions: 10 grammar and 10 vocabulary. Your best score: <b>${best}/20</b></p><div id="qs"></div><div class="row"><button class="primary" id="sub">Check answers</button><a class="btn" href="#/practice/${u.n}" id="again" hidden>Try new questions</a></div><p class="msg" id="score" role="status"></p>`;
+  qs.forEach((q,qi)=>$('#qs').insertAdjacentHTML('beforeend',`<div class="q" id="q${qi}"><div>${qi+1}. ${esc(q.q)}</div>${q.o.map((o,oi)=>`<label><input type="radio" name="p${qi}" value="${oi}"> ${esc(o)}</label>`).join('')}</div>`));
+  $('#sub').onclick=()=>{let r=0;qs.forEach((q,qi)=>{const box=$('#q'+qi),labs=box.querySelectorAll('label'),sel=box.querySelector('input:checked');labs[q.o.indexOf(q.a)].classList.add('ok');if(sel&&q.o[+sel.value]==q.a)r++;else if(sel)sel.parentNode.classList.add('no');box.querySelectorAll('input').forEach(x=>x.disabled=true)});
+    $('#score').textContent=`Score: ${r}/20${r>=16?' Wonderful!':r>=10?' Good job, keep going!':' Keep practicing, you can do it!'}`;$('#sub').disabled=true;$('#again').hidden=false;
+    const d=load();(d.prac=d.prac||{})[u.n]=Math.max(r,d.prac?.[u.n]||0);(d.log=d.log||[]).push({date:ymd(new Date()),unit:u.n,score:r});d.log=d.log.slice(-30);save(d)};
+  $('#again').onclick=()=>setTimeout(route,0);
 }
 // ---- theo dõi tiến độ
 function progress(){
-  const d=load(),pr=d.practice||[],avg=pr.length?Math.round(pr.reduce((a,x)=>a+x.score/x.total,0)/pr.length*100):0;
+  const d=load(),lg=d.log||[],K=['vocab','grammar','speaking','writing','practice'];
   app.innerHTML=`<h1>My Progress</h1><p class="sub">Your learning record, ${esc(user)}.</p>
-  <div class="stats"><div class="stat"><b>${overall(d)}%</b>Course completed</div><div class="stat"><b>${streak(d.days)}</b>Day streak</div><div class="stat"><b>${(d.days||[]).length}</b>Days studied</div><div class="stat"><b>${pr.length?avg+'%':'–'}</b>Practice average</div></div>
-  ${bar(overall(d)/100)}<h2>By unit</h2><div style="overflow-x:auto"><table><tr><th>Unit</th><th>Vocabulary</th><th>Grammar</th><th>Speaking</th><th>Writing</th></tr>${U.map(u=>{const f=frac(d,u);return `<tr><td><a href="#/vocab/${u.n}">${u.n}. ${esc(u.t)}</a></td>${['vocab','grammar','speaking','writing'].map(k=>`<td style="min-width:90px"><a href="#/${k}/${u.n}" style="text-decoration:none;color:inherit">${Math.round(f[k]*100)}%${bar(f[k])}</a></td>`).join('')}</tr>`}).join('')}</table></div>
-  <h2>Recent practice</h2>${pr.length?`<table><tr><th>Date</th><th>Score</th></tr>${pr.slice(-8).reverse().map(x=>`<tr><td>${x.date}</td><td>${x.score}/${x.total}</td></tr>`).join('')}</table>`:'<p class="sub">No practice yet. Try the Practice section.</p>'}
-  <p class="sub">Vocabulary = words marked "I know it". Grammar = best exercise score. Speaking = phrases ticked. Writing = marked completed.</p>`;
+  <div class="stats"><div class="stat"><b>${overall(d)}%</b>Course completed</div><div class="stat"><b>${streak(d.days)}</b>Day streak</div><div class="stat"><b>${(d.days||[]).length}</b>Days studied</div><div class="stat"><b>${lg.length}</b>Practice tests taken</div></div>
+  ${bar(overall(d)/100)}<h2>By unit</h2><div style="overflow-x:auto"><table><tr><th>Unit</th><th>Vocabulary</th><th>Grammar</th><th>Speaking</th><th>Writing</th><th>Practice</th></tr>${U.map(u=>{const f=frac(d,u);return `<tr><td>${u.n}. ${esc(u.t)}</td>${K.map(k=>`<td style="min-width:90px"><a href="#/${k}/${u.n}" style="text-decoration:none;color:inherit">${Math.round(f[k]*100)}%${bar(f[k])}</a></td>`).join('')}</tr>`}).join('')}</table></div>
+  <h2>Recent practice</h2>${lg.length?`<table><tr><th>Date</th><th>Unit</th><th>Score</th></tr>${lg.slice(-8).reverse().map(x=>`<tr><td>${x.date}</td><td>Unit ${x.unit}</td><td>${x.score}/20</td></tr>`).join('')}</table>`:'<p class="sub">No practice yet. Try the Practice section.</p>'}
+  <p class="sub">Vocabulary = words marked "I know it". Grammar = best exercise score. Speaking = questions ticked. Writing = sentences solved. Practice = best score out of 20.</p>`;
 }
 addEventListener('hashchange',route);route();
